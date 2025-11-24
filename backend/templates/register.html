@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sign Up – AI Audio Generator</title>
+
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
+
+  <meta name="description"
+        content="Create a free AI Audio Generator account and start converting your text into AI-powered audio in seconds.">
+  <meta name="keywords"
+        content="sign up, register, ai audio generator, text to speech, create account">
+  <meta name="author" content="AI Audio Generator">
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="auth-body">
+
+<div class="auth-wrapper">
+  <div class="auth-card">
+
+    <div class="auth-avatar">
+      <div class="auth-avatar-icon">✨</div>
+    </div>
+
+    <h2 class="auth-title">Create Account</h2>
+    <p class="auth-subtitle">Join AI Audio Generator in a few seconds.</p>
+
+    {% if error %}
+      <div class="auth-error">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('register') }}" class="auth-form">
+      <div class="auth-input-group">
+        <span class="auth-input-icon">👤</span>
+        <input type="text" name="username" placeholder="Username" required>
+      </div>
+
+      <div class="auth-input-group">
+        <span class="auth-input-icon">📧</span>
+        <input type="email" name="email" placeholder="Email" required>
+      </div>
+
+      <div class="auth-input-group">
+        <span class="auth-input-icon">🔒</span>
+        <input type="password" name="password" placeholder="Password" required>
+      </div>
+
+      <button type="submit" class="auth-button">Sign Up</button>
+    </form>
+
+    <div class="auth-footer-text">
+      Already have an account?
+      <a href="{{ url_for('login') }}" class="auth-link">Login</a>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

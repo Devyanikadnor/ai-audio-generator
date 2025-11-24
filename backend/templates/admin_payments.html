@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin – Payments</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="auth-body">
+
+<div class="auth-wrapper">
+  <div class="auth-card">
+
+    <h2 class="auth-title">Payment History</h2>
+
+    <table style="width:100%; margin-top:15px; border-collapse: collapse;">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Plan</th>
+          <th>Amount</th>
+          <th>Credits</th>
+          <th>Status</th>
+          <th>Payment ID</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in payments %}
+        <tr style="border-bottom:1px solid #334155;">
+          <td>{{ p.user.email }}</td>
+          <td>{{ p.plan_name }}</td>
+          <td>₹{{ p.amount }}</td>
+          <td>{{ p.credits_added }}</td>
+          <td>{{ p.status }}</td>
+          <td style="font-size:0.75rem;">{{ p.razorpay_payment_id }}</td>
+          <td>{{ p.timestamp.strftime("%Y-%m-%d %H:%M") }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+  </div>
+</div>
+
+</body>
+</html>

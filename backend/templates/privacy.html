@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Privacy Policy – AI Audio Generator</title>
+
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
+
+  <meta name="description"
+        content="Read the privacy policy of AI Audio Generator to understand how we handle your text, audio, and account data.">
+  <meta name="keywords"
+        content="privacy policy, ai audio generator, data handling, text to speech privacy">
+  <meta name="author" content="AI Audio Generator">
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="auth-body">
+
+<div class="auth-wrapper info-wrapper">
+  <div class="auth-card about-card">
+
+    <div class="auth-avatar">
+      <div class="auth-avatar-icon">🔒</div>
+    </div>
+
+    <h2 class="auth-title">Privacy Policy</h2>
+    <p class="auth-subtitle">How we handle your data on AI Audio Generator.</p>
+
+    <div class="about-content">
+      <h3>1. Overview</h3>
+      <p>
+        Your privacy is important to us. This Privacy Policy explains how
+        <strong>AI Audio Generator</strong> handles the text and audio you create
+        using our platform.
+      </p>
+
+      <h3>2. Text &amp; Audio Data</h3>
+      <p>
+        The text you enter is processed only for the purpose of generating audio.
+        We do not use your content to train models or share it with third parties.
+      </p>
+      <p>
+        Generated audio files are stored on our server so that you can play them
+        from your account history. These files may be removed periodically for
+        storage and maintenance reasons.
+      </p>
+
+      <h3>3. Account Information</h3>
+      <p>
+        When you create an account, we store your username, email, and an encrypted
+        version of your password. We never store plain-text passwords.
+      </p>
+
+      <h3>4. Cookies &amp; Sessions</h3>
+      <p>
+        We use sessions (and standard cookies) only to keep you logged in and to
+        secure your account while using the site.
+      </p>
+
+      <h3>5. Third-Party Services</h3>
+      <p>
+        Our text-to-speech feature may rely on third-party AI providers. Your text
+        may be temporarily sent to these services only to generate the audio output.
+      </p>
+
+      <h3>6. Changes to This Policy</h3>
+      <p>
+        We may update this Privacy Policy over time. Any important changes will be
+        reflected on this page.
+      </p>
+
+      <h3>7. Contact</h3>
+      <p>
+        If you have any questions about this policy, feel free to contact us via
+        the support section of the website.
+      </p>
+    </div>
+
+    <div style="margin-top: 16px;">
+      <a href="{{ url_for('index') }}" class="about-back-btn">⬅ Back to Dashboard</a>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

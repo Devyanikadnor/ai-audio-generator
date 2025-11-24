@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Audio Result</title>
+</head>
+<body>
+  <h1>Your Generated Audio</h1>
+  {% if audio_url %}
+    <audio controls src="{{ audio_url }}"></audio>
+    <p><a href="{{ audio_url }}" download>Download Audio</a></p>
+  {% else %}
+    <p>No audio available.</p>
+  {% endif %}
+</body>
+</html>

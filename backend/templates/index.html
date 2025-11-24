@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard – AI Audio Generator</title>
+
+  <!-- 🔹 Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32"
+        href="{{ url_for('static', filename='img/favicon-32.png') }}">
+  <link rel="icon" type="image/png" sizes="96x96"
+        href="{{ url_for('static', filename='img/favicon-96.png') }}">
+  <link rel="apple-touch-icon"
+        href="{{ url_for('static', filename='img/favicon-192.png') }}">
+
+  <!-- 🔹 SEO TAGS -->
+  <meta name="description" content="Generate AI audio from text using AI Audio Generator. Fast, secure and high quality text-to-speech with credits system.">
+  <meta name="keywords" content="AI audio generator, text to speech, AI voice, TTS tool, online TTS">
+  <meta name="author" content="AI Audio Generator">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- 🔹 CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body class="auth-body">
+
+<!-- ============ NAVBAR ============ -->
+<div class="dashboard-navbar">
+  <div class="nav-left">
+    <div class="nav-logo">
+      <img src="{{ url_for('static', filename='img/logo.png') }}"
+           alt="AI Audio Generator Logo"
+           class="nav-logo-img">
+      <span class="nav-logo-text">AI Audio Generator</span>
+    </div>
+  </div>
+
+  <div class="nav-right">
+    <span class="nav-username">Hi, {{ current_user.username }}</span>
+    <span class="nav-credits" id="nav-credits">
+      Credits: {{ current_user.credits }}
+    </span>
+
+    <a href="{{ url_for('pricing') }}" class="nav-link">Pricing</a>
+    <a href="{{ url_for('about') }}" class="nav-link">About</a>
+    <a href="{{ url_for('privacy') }}" class="nav-link">Privacy</a>
+    <a href="{{ url_for('logout') }}" class="nav-link logout-btn">Logout</a>
+  </div>
+</div>
+
+<!-- ============ MAIN DASHBOARD ============ -->
+<div class="auth-wrapper">
+  <div class="auth-card dashboard-card">
+
+    <!-- Header -->
+    <div class="dashboard-header">
+      <div>
+        <h2 class="auth-title">AI Audio Generator</h2>
+        <p class="auth-subtitle">
+          Convert your text into clear, AI-powered audio voice.
+        </p>
+      </div>
+    </div>
+
+    <!-- ============ FORM ============ -->
+    <form id="tts-form" class="dashboard-form">
+
+      <label for="tts-text" class="field-label">
+        Enter your text
+      </label>
+
+      <textarea
+        id="tts-text"
+        placeholder="Type or paste your content here..."></textarea>
+
+      <div class="controls">
+        <div class="controls-left">
+          <label for="tts-lang" class="field-label">
+            Language
+          </label>
+
+          <select id="tts-lang">
+            <option value="en">English</option>
+            <option value="hi">Hindi</option>
+          </select>
+        </div>
+
+        <button type="submit" class="auth-button dashboard-btn">
+          🎙 Generate Voice
+        </button>
+      </div>
+
+      <div class="status" id="status"></div>
+    </form>
+
+    <!-- ============ GENERATED AUDIO ============ -->
+    <div class="audio-box" id="audio-container"></div>
+
+    <!-- ============ HISTORY ============ -->
+    <div class="history-section dashboard-history">
+      <h3>Recent Audio History</h3>
+      <p class="history-subtitle">
+        Last 10 audios generated from your account
+      </p>
+
+      <ul id="history-list">
+        {% if history and history|length > 0 %}
+          {% for item in history %}
+            <li class="history-item">
+              <div class="history-info">
+                <div class="history-text">
+                  {{ item.text_preview }}
+                </div>
+
+                <div class="history-meta">
+                  <span>{{ item.lang.upper() }}</span>
+                  <span>{{ item.timestamp }}</span>
+                </div>
+              </div>
+
+              <audio controls src="{{ item.audio_url }}"></audio>
+            </li>
+          {% endfor %}
+        {% else %}
+          <li class="history-empty">
+            You haven’t generated any audio yet.
+          </li>
+        {% endif %}
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+<!-- 🔹 Javascript -->
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+</body>
+</html>

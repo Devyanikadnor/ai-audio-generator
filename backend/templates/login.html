@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login – AI Audio Generator</title>
+
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
+
+  <meta name="description"
+        content="Login to your AI Audio Generator account to access your text-to-speech dashboard and audio history.">
+  <meta name="keywords"
+        content="login, ai audio generator, text to speech account, tts dashboard">
+  <meta name="author" content="AI Audio Generator">
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="auth-body">
+
+<div class="auth-wrapper">
+  <div class="auth-card">
+
+    <div class="auth-avatar">
+      <div class="auth-avatar-icon">👤</div>
+    </div>
+
+    <h2 class="auth-title">Welcome Back</h2>
+    <p class="auth-subtitle">Login to access your AI audio dashboard.</p>
+
+    {% if error %}
+      <div class="auth-error">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('login') }}" class="auth-form">
+      <div class="auth-input-group">
+        <span class="auth-input-icon">📧</span>
+        <input type="email" name="email" placeholder="Email" required>
+      </div>
+
+      <div class="auth-input-group">
+        <span class="auth-input-icon">🔒</span>
+        <input type="password" name="password" placeholder="Password" required>
+      </div>
+
+      <div class="auth-row">
+        <label class="auth-remember">
+          <input type="checkbox" name="remember">
+          <span>Remember me</span>
+        </label>
+        <a href="{{ url_for('forgot_password') }}" class="auth-link small">Forgot password?</a>
+      </div>
+
+      <button type="submit" class="auth-button">Login</button>
+    </form>
+
+    <div class="auth-footer-text">
+      Don’t have an account?
+      <a href="{{ url_for('register') }}" class="auth-link">Sign up</a>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
