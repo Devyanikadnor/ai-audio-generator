@@ -621,3 +621,33 @@ body {
     flex-direction: column;
   }
 }
+/* ===== Download button styles ===== */
+.download-wrap {
+  margin-top: 8px;
+  text-align: center;
+}
+
+.download-btn {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #6366f1, #7c3aed);
+  color: #f9fafb;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 10px 25px rgba(99, 102, 241, 0.6);
+  transition: 0.18s ease;
+}
+
+.download-btn:hover {
+  opacity: 0.95;
+  transform: translateY(-1px);
+}
+
+.download-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 18px rgba(99, 102, 241, 0.45);
+}
+
