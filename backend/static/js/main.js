@@ -76,6 +76,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (data.audio_url) {
           audioContainer.innerHTML = `
             <audio controls src="${data.audio_url}"></audio>
+            <div class="download-wrap">
+              <a href="${data.audio_url}" download class="download-btn">⬇ Download Audio</a>
+            </div>
           `;
         }
 
@@ -99,6 +102,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
               </div>
               <audio controls src="${item.audio_url}"></audio>
+              <div class="download-wrap">
+                <a href="${item.audio_url}" download class="download-btn">⬇ Download</a>
+              </div>
             `;
             historyList.appendChild(li);
           });
