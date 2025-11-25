@@ -43,7 +43,15 @@ bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
 
-# Razorpay client (TEST MODE – uses keys from config.py)
+
+# ✅ Create tables automatically in the configured DB (Postgres on Render)
+@app.before_first_request
+def create_tables():
+    """Ensure all database tables exist (runs once per process)."""
+    db.create_all()
+
+
+# Razorpay client (keys come from config / environment)
 razorpay_client = razorpay.Client(
     auth=(app.config["RAZORPAY_KEY_ID"], app.config["RAZORPAY_KEY_SECRET"])
 )
@@ -63,9 +71,6 @@ PLANS = {
 
 AUDIO_DIR = os.path.join(app.root_path, app.config["AUDIO_OUTPUT_DIR"])
 os.makedirs(AUDIO_DIR, exist_ok=True)
-
-# Webhook secret from Razorpay dashboard (TEST MODE)
-RAZORPAY_WEBHOOK_SECRET = "YOUR_TEST_WEBHOOK_SECRET"
 
 # =====================================================
 # USER LOADER
@@ -147,7 +152,7 @@ def register():
         elif User.query.filter(
             (User.username == username) | (User.email == email)
         ).first():
-            error = "User already exists"
+            error = "User already exists."
         else:
             hashed = bcrypt.generate_password_hash(password).decode("utf-8")
 
@@ -184,7 +189,7 @@ def login():
             login_user(user)
             return redirect(url_for("index"))
         else:
-            error = "Invalid login credentials"
+            error = "Invalid login credentials."
 
     return render_template("login.html", error=error)
 
@@ -211,7 +216,7 @@ def forgot_password():
         if user:
             token = generate_reset_token(user.id)
             reset_link = url_for("reset_password", token=token, _external=True)
-            # For dev: print in console
+            # For development/testing: print link in server logs
             print("RESET LINK (TEST):", reset_link)
 
         message = "If this email exists, reset instructions were generated."
@@ -239,7 +244,7 @@ def reset_password(token):
 
 
 # =====================================================
-# PRICING + PAYMENT (RAZORPAY TEST MODE)
+# PRICING + PAYMENT (RAZORPAY)
 # =====================================================
 
 @app.route("/pricing")
@@ -259,14 +264,17 @@ def create_order(plan_id):
     if not plan:
         abort(404)
 
-    amount = plan["price"] * 100  # in paise
+    amount = plan["price"] * 100  # paise
 
     order = razorpay_client.order.create(
         {
             "amount": amount,
             "currency": "INR",
             "payment_capture": 1,
-            "notes": {"user_id": current_user.id, "plan_id": plan_id},
+            "notes": {
+                "user_id": current_user.id,
+                "plan_id": plan_id,
+            },
         }
     )
 
@@ -284,16 +292,16 @@ def verify_payment():
     plan_id = data.get("plan_id")
 
     if not all([order_id, payment_id, signature, plan_id]):
-        return jsonify({"success": False, "message": "Missing details"}), 400
+        return jsonify({"success": False, "message": "Missing payment details."}), 400
 
     plan = PLANS.get(plan_id)
     if not plan:
-        return jsonify({"success": False, "message": "Invalid plan"}), 400
+        return jsonify({"success": False, "message": "Invalid plan."}), 400
 
     # Prevent double-crediting
     existing = Payment.query.filter_by(razorpay_payment_id=payment_id).first()
     if existing:
-        return jsonify({"success": False, "message": "Already credited"}), 409
+        return jsonify({"success": False, "message": "Payment already processed."}), 409
 
     params_dict = {
         "razorpay_order_id": order_id,
@@ -304,12 +312,11 @@ def verify_payment():
     try:
         razorpay_client.utility.verify_payment_signature(params_dict)
     except razorpay.errors.SignatureVerificationError:
-        return jsonify({"success": False, "message": "Verification failed"}), 400
+        return jsonify({"success": False, "message": "Payment verification failed."}), 400
 
-    # ✅ Add credits
+    # Add credits
     current_user.credits = (current_user.credits or 0) + plan["credits"]
 
-    # ✅ Save payment record
     payment = Payment(
         user_id=current_user.id,
         plan_id=plan_id,
@@ -326,7 +333,7 @@ def verify_payment():
     db.session.commit()
 
     flash(
-        f"✅ {plan['name']} activated! {plan['credits']} credits added.",
+        f"Payment successful! {plan['name']} plan activated, {plan['credits']} credits added.",
         "success",
     )
 
@@ -334,16 +341,18 @@ def verify_payment():
 
 
 # =====================================================
-# RAZORPAY WEBHOOK (TEST)
+# RAZORPAY WEBHOOK (optional, for automatic confirmation)
 # =====================================================
 
 @app.route("/razorpay-webhook", methods=["POST"])
 def razorpay_webhook():
+    webhook_secret = app.config.get("RAZORPAY_WEBHOOK_SECRET", "")
+
     signature = request.headers.get("X-Razorpay-Signature")
     payload = request.data
 
     expected_signature = hmac.new(
-        bytes(RAZORPAY_WEBHOOK_SECRET, "utf-8"),
+        bytes(webhook_secret, "utf-8"),
         payload,
         hashlib.sha256,
     ).hexdigest()
@@ -356,20 +365,23 @@ def razorpay_webhook():
     if event.get("event") == "payment.captured":
         payment_entity = event["payload"]["payment"]["entity"]
 
-        payment_id = payment_entity["id"]
-        order_id = payment_entity["order_id"]
+        razorpay_payment_id = payment_entity["id"]
+        razorpay_order_id = payment_entity["order_id"]
         plan_id = payment_entity["notes"].get("plan_id")
         user_id = payment_entity["notes"].get("user_id")
-
-        # Already processed?
-        if Payment.query.filter_by(razorpay_payment_id=payment_id).first():
-            return jsonify({"message": "Already processed"}), 200
 
         plan = PLANS.get(plan_id)
         user = User.query.get(user_id)
 
         if not plan or not user:
-            return jsonify({"error": "Invalid data"}), 400
+            return jsonify({"error": "Invalid plan or user in webhook"}), 400
+
+        # Prevent double credit
+        existing = Payment.query.filter_by(
+            razorpay_payment_id=razorpay_payment_id
+        ).first()
+        if existing:
+            return jsonify({"message": "Payment already processed"}), 200
 
         user.credits = (user.credits or 0) + plan["credits"]
 
@@ -379,21 +391,21 @@ def razorpay_webhook():
             plan_name=plan["name"],
             amount=plan["price"],
             credits_added=plan["credits"],
-            razorpay_order_id=order_id,
-            razorpay_payment_id=payment_id,
+            razorpay_order_id=razorpay_order_id,
+            razorpay_payment_id=razorpay_payment_id,
             status="success",
         )
 
         db.session.add(payment)
         db.session.commit()
 
-        print("✅ Webhook credited:", user.email)
+        print("✅ Webhook: Credits added via Razorpay")
 
-    return jsonify({"status": "ok"})
+    return jsonify({"status": "ok"}), 200
 
 
 # =====================================================
-# AUDIO GENERATION (NEW IMPLEMENTATION)
+# AUDIO GENERATION
 # =====================================================
 
 @app.route("/generate-audio", methods=["POST"])
@@ -408,7 +420,7 @@ def generate_audio():
       - remaining_credits
     """
 
-    # Accept both JSON (fetch with application/json) and form (normal POST)
+    # Accept both JSON and form POST
     data = request.get_json(silent=True)
     if not data:
         data = request.form
@@ -416,7 +428,7 @@ def generate_audio():
     text = (data.get("text") or "").strip()
     lang = (data.get("lang") or "en").strip()
 
-    # 1) Basic validation
+    # Basic validation
     if not text:
         return jsonify({"error": "Text is required."}), 400
 
@@ -425,25 +437,25 @@ def generate_audio():
             {"error": f"Text too long. Max {app.config['MAX_TEXT_LENGTH']} characters."}
         ), 400
 
-    # 2) Credits check
+    # Credits check
     if current_user.credits is None:
-        current_user.credits = 0  # safety
+        current_user.credits = 0
 
     if current_user.credits < CREDITS_PER_AUDIO:
         return jsonify(
-            {"error": "You have 0 credits left. Please buy a plan from Pricing page."}
-        ), 402  # Payment Required
+            {"error": "You have 0 credits left. Please buy a plan from the Pricing page."}
+        ), 402
 
     try:
-        # 3) Generate the audio file
+        # Generate audio
         filename = text_to_speech(
             text=text,
             lang=lang,
-            output_dir=AUDIO_DIR,  # uses AUDIO_DIR defined above
+            output_dir=AUDIO_DIR,
         )
         audio_url = url_for("static", filename=f"audio/{filename}", _external=False)
 
-        # 4) Create AudioHistory record
+        # Create history record
         preview = text[:80] + ("..." if len(text) > 80 else "")
 
         history_entry = AudioHistory(
@@ -453,14 +465,13 @@ def generate_audio():
             user_id=current_user.id,
         )
 
-        # 5) Deduct credits
+        # Deduct credits
         current_user.credits = (current_user.credits or 0) - CREDITS_PER_AUDIO
 
-        # 6) Commit both history + credits in one transaction
         db.session.add(history_entry)
         db.session.commit()
 
-        # 7) Rebuild last 10 history items for frontend
+        # Build updated history
         history_list = []
         audios = (
             AudioHistory.query.filter_by(user_id=current_user.id)
@@ -525,7 +536,7 @@ def admin_payments():
 
 
 # =====================================================
-# RUN SERVER
+# LOCAL DEV ENTRYPOINT
 # =====================================================
 
 if __name__ == "__main__":
