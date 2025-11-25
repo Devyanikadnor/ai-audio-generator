@@ -43,11 +43,7 @@ bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
 
-
-# ✅ Create tables automatically in the configured DB (Postgres on Render)
-@app.before_first_request
-def create_tables():
-    """Ensure all database tables exist (runs once per process)."""
+with app.app_context():
     db.create_all()
 
 
