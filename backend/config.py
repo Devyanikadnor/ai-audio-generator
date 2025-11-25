@@ -1,49 +1,47 @@
 import os
 
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+
 
 class Config:
-    # ==================================================
-    # General App Config
-    # ==================================================
-    SECRET_KEY = "your-secret-key-change-this-before-production"
+    """Application configuration (SQLite locally, PostgreSQL on Render)."""
 
-    # SQLite DB location
-    BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-    SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(BASE_DIR, "site.db")
+    # ================= SECURITY =================
+    SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-change-me")
+
+    # ================= DATABASE =================
+    # If DATABASE_URL is set (Render / production), use it.
+    # Otherwise fall back to local SQLite file: site.db
+    SQLALCHEMY_DATABASE_URI = os.environ.get(
+        "DATABASE_URL",
+        "sqlite:///" + os.path.join(BASE_DIR, "site.db")
+    )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # ==================================================
-    # Audio Config
-    # ==================================================
-    AUDIO_OUTPUT_DIR = "static/audio"
-    MAX_TEXT_LENGTH = 5000  # Max characters per request
+    # ================= AUDIO STORAGE =================
+    AUDIO_OUTPUT_DIR = os.environ.get("AUDIO_OUTPUT_DIR", "static/audio")
 
-    # ==================================================
-    # Razorpay Credentials (USE TEST KEYS FIRST)
-    # ==================================================
-    RAZORPAY_KEY_ID = "rzp_test_Rinv0dKvfIqeWm"
-    RAZORPAY_KEY_SECRET = "XKWKAWvBZSBcNE7XiUvp67Vd"
+    # ================= APP SETTINGS =================
+    MAX_TEXT_LENGTH = int(os.environ.get("MAX_TEXT_LENGTH", 5000))
 
-    # ==================================================
-    # Session / Security
-    # ==================================================
-    SESSION_COOKIE_HTTPONLY = True
-    SESSION_COOKIE_SECURE = False   # Set True only if using HTTPS
-    REMEMBER_COOKIE_HTTPONLY = True
-    REMEMBER_COOKIE_DURATION = 86400  # 1 day
+    # ================= RAZORPAY (TEST / LIVE) =================
+    # These should be set in the environment on Render.
+    RAZORPAY_KEY_ID = os.environ.get(
+        "RAZORPAY_KEY_ID",
+        "rzp_test_XXXXXXXXXXXX"  # optional local default
+    )
+    RAZORPAY_KEY_SECRET = os.environ.get(
+        "RAZORPAY_KEY_SECRET",
+        "your_test_key_secret_here"  # optional local default
+    )
 
-
-# Optional: Development config
-class DevelopmentConfig(Config):
-    DEBUG = True
+    # Optional: webhook secret can also be environment-driven if you want
+    RAZORPAY_WEBHOOK_SECRET = os.environ.get(
+        "RAZORPAY_WEBHOOK_SECRET",
+        "test_webhook_secret"
+    )
 
 
-# Optional: Production config
-class ProductionConfig(Config):
-    DEBUG = False
-    SESSION_COOKIE_SECURE = True  # Only if using HTTPS
-
-
-# Function used in app.py
 def get_config():
-    return DevelopmentConfig
+    """Return the config class used by app.py"""
+    return Config

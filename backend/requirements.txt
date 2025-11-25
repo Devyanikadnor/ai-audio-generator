@@ -3,5 +3,7 @@ Flask-Login
 Flask-Bcrypt
 Flask-SQLAlchemy
 itsdangerous
+gunicorn
 gTTS
 razorpay
+psycopg2-binary
